@@ -1,0 +1,24 @@
+{
+    "name": "metricfromfuture",
+    "version": "0.2.17",
+    "description": "Metric Server with realtime calculation",
+    "main": "./server.js",
+    "scripts": {
+        "test": "node server.js",
+        "start": "node ./dist/mff.js",
+        "build": "webpack --config webpack.config.js"
+    },
+    "keywords": [
+        "metric",
+        "server",
+        "realtime",
+        "rpc"
+    ],
+    "author": "AlexMcArrow <alex.mcarrow@gmail.com>",
+    "license": "MIT",
+    "devDependencies": {
+        "terser-webpack-plugin": "^5.2.4",
+        "webpack": "^5.58.2",
+        "webpack-cli": "^4.9.0"
+    }
+}

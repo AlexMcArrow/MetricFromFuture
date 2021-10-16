@@ -1,0 +1,14 @@
+{
+    "apps": [
+        {
+            "name": "MFF",
+            "script": "./dist/mff.js",
+            "instances": 1,
+            "exec_mode": "fork",
+            "env": {
+                "PATH_LOG": "./logs",
+                "PATH_CONFIG": "./config.json"
+            }
+        }
+    ]
+}

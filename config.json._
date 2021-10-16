@@ -1,0 +1,14 @@
+{
+    "server": {
+        "port": 20744
+    },
+    "metric": {
+        "check": {
+            "interval": 15,
+            "run": "/usr/bin/sh /home/user/check.sh",
+            "notice": 20,
+            "warning": 35,
+            "error": 45
+        },
+    }
+}
