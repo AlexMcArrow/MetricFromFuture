@@ -1,5 +1,5 @@
 {
-    "name": "metricfromfuture",
+    "name": "@alexmcarrow/metricfromfuture",
     "version": "0.2.17",
     "description": "Metric Server with realtime calculation",
     "main": "./server.js",
