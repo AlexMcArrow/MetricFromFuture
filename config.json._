@@ -1,6 +1,7 @@
 {
     "server": {
-        "port": 20744
+        "port": 20744,
+        "logs": false
     },
     "metric": {
         "check": {
@@ -8,7 +9,9 @@
             "run": "/usr/bin/sh /home/user/check.sh",
             "notice": 20,
             "warning": 35,
-            "error": 45
-        },
+            "error": 45,
+            "history": 10,
+            "call": "/usr/bin/sh /home/user/send.sh --metric=$1 --level=$2 --time=$3"
+        }
     }
 }

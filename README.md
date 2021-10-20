@@ -1,5 +1,7 @@
 # Metric From Future
 
+ `v0.2.18`
+
 Metric Server for calculation timing of script execution time
 
 * When script is run, metric use script execution time
@@ -34,12 +36,13 @@ The `SAVE` -value is considered correct as long as it is less than any `LIVE` -v
 | `PATH_LOG` | Path (folder) to logs folder |
 | `PATH_CONFIG` | Path (file) to config.json |
 
-## Example of `config.json` (see: config.json_)
+## Example of `config.json` (see: config.json._)
 
 ```json
 {
     "server": {
-        "port": 20744
+        "port": 20744,
+        "logs": false
     },
     "metric": {
         "check": {
@@ -47,7 +50,9 @@ The `SAVE` -value is considered correct as long as it is less than any `LIVE` -v
             "run": "/usr/bin/sh /home/user/check.sh",
             "notice": 20,
             "warning": 35,
-            "error": 45
+            "error": 45,
+            "history": 10,
+            "call": "/usr/bin/sh /home/user/send.sh --metric=$1 --level=$2 --time=$3"
         },
     }
 }
@@ -58,12 +63,15 @@ The `SAVE` -value is considered correct as long as it is less than any `LIVE` -v
 | JSON-section | type | description |
 | ------------ | ---- | ----------- |
 | `server.port` | integer | MFF HTTP-RPC port |
+| `server.logs` | boolean | MFF can generate log-files |
 | `metric.[name]` | string | Metric section |
 | `metric.[name].interval` | integer | Metric execution interval |
 | `metric.[name].run` | string | Metric execution script |
 | `metric.[name].notice` | integer | Metric NOTICE timing |
 | `metric.[name].warning` | integer | Metric WARNING timing |
 | `metric.[name].error` | integer | Metric ERROR timing |
+| `metric.[name].history` | integer | Metric history storage size |
+| `metric.[name].call` | RegExp-string | Metric history execution script on (notice, warning, error) <br> Can use RegExp params: <br> $1 - Metric name `[check]` <br> $2 - Logging level `[notice\|warning\|error]` <br> $3 - Metric timing `[10]` |
 
 ## Logs
 
@@ -96,7 +104,7 @@ This log file contains records of not `OK` work ( `notice` , `warning` , `error`
 | `/?get=[name]` | `name` - metric name | get specific metric data  |
 | `/?get=_sys` | --- | Metric name |
 
-## Example of HTTP-RPC for URI-path = `/`
+## Example of output for URI-path = `/`
 
 ```json
 {
@@ -110,7 +118,7 @@ This log file contains records of not `OK` work ( `notice` , `warning` , `error`
 | `c` | integer | Result code |
 | `d` | string | Data section |
 
-## Example of HTTP-RPC for URI-path = `/?get=*` or `/?get=all`
+## Example of output for URI-path = `/?get=*` or `/?get=all`
 
 ```json
 {
@@ -119,7 +127,14 @@ This log file contains records of not `OK` work ( `notice` , `warning` , `error`
         "alpha": {
             "v": 5,
             "t": 1634412899058,
-            "dt": "2021-10-16T19:34:59.058Z"
+            "dt": "2021-10-16T19:34:59.058Z",
+            "hist": {
+                "1634710497731": {
+                    "v": 40,
+                    "t": 1634710497731,
+                    "dt": "2021-10-20T06:14:57.731Z"
+                },
+            }
         }
     }
 }
@@ -131,10 +146,15 @@ This log file contains records of not `OK` work ( `notice` , `warning` , `error`
 | `d` | string | Data section |
 | `d.[name]` | object | Metric section |
 | `d.[name].v` | int | Actual timing for metric |
-| `d.[name].t` | int | Unixtimestamp for actual timing |
+| `d.[name].t` | int | Unixtimestamp (with milliseconds) for actual timing |
 | `d.[name].dt` | int | Datetime for actual timing |
+| `d.[name].hist` | object | History block |
+| `d.[name].hist.[histblock]` | string | Unixtimestamp (with milliseconds) of history block |
+| `d.[name].hist.[histblock].v` | int | History timing |
+| `d.[name].hist.[histblock].t` | int | History Unixtimestamp (with milliseconds) |
+| `d.[name].hist.[histblock].dt` | string | History Datetime |
 
-## Example of HTTP-RPC for URI-path = `/?get=[name]`
+## Example of output for URI-path = `/?get=[name]`
 
 ```json
 {
@@ -142,7 +162,14 @@ This log file contains records of not `OK` work ( `notice` , `warning` , `error`
     "d": {
         "v": 5,
         "t": 1634413031384,
-        "dt": "2021-10-16T19:37:11.384Z"
+        "dt": "2021-10-16T19:37:11.384Z",
+        "hist": {
+            "1634710497731": {
+                "v": 40,
+                "t": 1634710497731,
+                "dt": "2021-10-20T06:14:57.731Z"
+            },
+        }
     }
 }
 ```
@@ -154,8 +181,13 @@ This log file contains records of not `OK` work ( `notice` , `warning` , `error`
 | `d.v` | int | Actual timing for metric |
 | `d.t` | int | Unixtimestamp for actual timing |
 | `d.dt` | int | Datetime for actual timing |
+| `d.hist` | object | History block |
+| `d.hist.[histblock]` | string | Unixtimestamp (with milliseconds) of history block |
+| `d.hist.[histblock].v` | int | History timing |
+| `d.hist.[histblock].t` | int | History Unixtimestamp (with milliseconds) |
+| `d.hist.[histblock].dt` | string | History Datetime |
 
-## Example of HTTP-RPC for URI-path = `/?get=_sys`
+## Example of output for URI-path = `/?get=_sys`
 
 ```json
 {
@@ -165,6 +197,13 @@ This log file contains records of not `OK` work ( `notice` , `warning` , `error`
             "v": 5,
             "t": 1634413183725,
             "dt": "2021-10-16T19:39:43.725Z",
+            "hist": {
+                "1634710497731": {
+                    "v": 40,
+                    "t": 1634710497731,
+                    "dt": "2021-10-20T06:14:57.731Z"
+                },
+            },
             "r": {
                 "6ad5e63d9b3f2dd54442c19bc64908a5": -1
             }
@@ -181,6 +220,11 @@ This log file contains records of not `OK` work ( `notice` , `warning` , `error`
 | `d.[name].v` | int | Actual timing for metric |
 | `d.[name].t` | int | Unixtimestamp for actual timing |
 | `d.[name].dt` | int | Datetime for actual timing |
+| `d.[name].hist` | object | History block |
+| `d.[name].hist.[histblock]` | string | Unixtimestamp (with milliseconds) of history block |
+| `d.[name].hist.[histblock].v` | int | History timing |
+| `d.[name].hist.[histblock].t` | int | History Unixtimestamp (with milliseconds) |
+| `d.[name].hist.[histblock].dt` | string | History Datetime |
 | `d.[name].r` | object | List of exucuted Runners for this metric |
 | `d.[name].r[id]` | string | ID of exucuted Runner |
 | `d.[name].r[id]=[value]` | int | Time of Runner execution |

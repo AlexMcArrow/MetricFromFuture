@@ -2,7 +2,7 @@
     "apps": [
         {
             "name": "MFF",
-            "script": "./dist/mff.js",
+            "script": "./mff.js",
             "instances": 1,
             "exec_mode": "fork",
             "env": {

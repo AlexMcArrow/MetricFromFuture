@@ -3,7 +3,7 @@
  * Metric Server for calculation timing of script execution time
  *
  * @author AlexMcArrow <alex.mcarrow@gmail.com>
- * @version 0.2.17
+ * @version 0.2.18
  * @package metricfromfuture
  */
 
@@ -51,14 +51,17 @@ class Collector {
 
     /**
      * Constructor
+     * @param {int} history History max count
      */
-    constructor() {
+    constructor(history = 10) {
         var that = this;
         that.Helper = new Helper;
         that._s = 0;
         that._l = 0;
         that._t = that.Helper.ts();
         that._dt = that.Helper.dt();
+        that._history = {};
+        that._max_history = parseInt(history);
     }
 
     /**
@@ -67,10 +70,18 @@ class Collector {
      */
     save(v) {
         var that = this;
+        that._history[that._t] = {
+            v: that._s,
+            t: that._t,
+            dt: that._dt
+        };
         that._s = v;
         that._l = that._s;
         that._t = that.Helper.ts();
         that._dt = that.Helper.dt();
+        if (Object.keys(that._history).length > that._max_history) {
+            delete that._history[Object.keys(that._history)[0]];
+        }
     }
 
     /**
@@ -98,7 +109,7 @@ class Collector {
      */
     now() {
         var that = this;
-        return { v: that._l, t: that._t, dt: that._dt };
+        return { v: that._l, t: that._t, dt: that._dt, hist: that._history };
     }
 }
 
@@ -114,25 +125,25 @@ class CollectorPool {
         var that = this;
         that.Helper = new Helper;
         that._pool = {};
-        if (!fs.existsSync(path.join(path_logs))) {
-            fs.mkdirSync(path.join(path_logs));
-        }
     }
 
     /**
      * Create new Metric with params
+     * @param {bool} uselogs Using file-logs flag
      * @param {string} metric Metric name
-     * @param {int} period Period of metric run
+     * @param {int} period Period of metric run in millisecond
      * @param {object} runner Runner
      * @param {int} notice Time of Notice range
      * @param {int} warn Time of Warning range
      * @param {int} error Time of Error range
+     * @param {int} history History max count
+     * @param {bool|string} call Call string
      * @returns
      */
-    create(metric, period, runner, notice = 10, warn = 30, error = 1000) {
+    create(uselogs, metric, period, runner, notice = 10, warn = 30, error = 1000, history = 10, call = false) {
         var that = this;
         metric = that._metric(metric);
-        period = parseInt(period) * 1000;
+        period = parseInt(period);
         that._pool[metric] = {
             id: metric,
             p: period,
@@ -140,10 +151,11 @@ class CollectorPool {
             _tn: notice,
             _tw: warn,
             _te: error,
-            _c: new Collector(),
+            _c: new Collector(history),
             _r: {},
             _t: null,
-            _log: null
+            _log: new Logs(uselogs, path_logs, metric),
+            _call: new Caller(call, metric)
         };
         return true;
     }
@@ -157,11 +169,25 @@ class CollectorPool {
         for (const k in that._pool) {
             if (that._pool.hasOwnProperty(k)) {
                 const e = that._pool[k];
-                e._log = fs.createWriteStream(path.join(path_logs, e.id + '.log'), { flags: 'a' });
                 that._initRunner(e);
                 e._t = setInterval(() => {
                     that._initRunner(e);
                 }, e.p);
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Stop all metrics in pool
+     * @returns bool
+     */
+    stopALL() {
+        var that = this;
+        for (const k in that._pool) {
+            if (that._pool.hasOwnProperty(k)) {
+                const e = that._pool[k];
+                clearInterval(e._t);
             }
         }
         return true;
@@ -253,17 +279,15 @@ class CollectorPool {
     }
 
     /**
-     * Logging
+     * Logging and Calling
      * @param {string} metric Metric name
      * @param {string} level Log level
      * @param {mixed} val logging value
      */
     _log(metric, level, val) {
         var that = this;
-        if (that._pool[metric]._log.write !== 'function') {
-            that._pool[metric]._log = fs.createWriteStream(path.join(path_logs, metric + '.log'), { flags: 'a' });
-        }
         that._pool[metric]._log.write(that.Helper.ts() + '|' + that.Helper.dt() + '|' + metric + '|' + level + '|' + val + '\n');
+        that._pool[metric]._call.ring(level, val);
     }
 }
 
@@ -326,6 +350,77 @@ class Runner {
 }
 
 /**
+ * Logger
+ */
+class Logs {
+
+    /**
+     * Constructor
+     * @param {bool} use Using log write
+     * @param {string} path Path for log-file
+     * @param {string} metric Metric name
+     */
+    constructor(use, path, metric) {
+        var that = this;
+        that._use = use;
+        that._path = path;
+        that._metric = metric;
+        that._log = null;
+        if (that._use && !fs.existsSync(path.join(path_logs))) {
+            fs.mkdirSync(path.join(path_logs));
+        }
+    }
+
+    /**
+     * Write into log
+     * @param {string} line
+     */
+    write(line) {
+        var that = this;
+        if (that._use) {
+            if (that._log.write !== 'function') {
+                that._log = fs.createWriteStream(path.join(that._path, that._metric + '.log'), { flags: 'a' });
+            }
+            that._log.write(line);
+        }
+    }
+}
+
+/**
+ * Caller
+ */
+class Caller {
+
+    /**
+     * Constructor
+     * @param {bool|string} call Script for calling
+     * @param {string} metric Metric name
+     */
+    constructor(call, metric) {
+        var that = this;
+        that._call = call;
+        that._metric = metric;
+        that._caller = null;
+    }
+
+    /**
+     * Ringing script for calling
+     * @param {string} level Log level
+     * @param {mixed} val logging value
+     */
+    ring(level, val) {
+        var that = this;
+        if (that._call !== false) {
+            var line = that._call;
+            line = line.replace(/\$1/g, that._metric);
+            line = line.replace(/\$2/g, level);
+            line = line.replace(/\$3/g, val);
+            child_process.exec(line);
+        }
+    }
+}
+
+/**
  * Metric From Future main class
  */
 class MFF {
@@ -340,7 +435,8 @@ class MFF {
 
         that.config = {
             server: {
-                port: 20744
+                port: 20744,
+                logs: true
             },
             metric: {}
         };
@@ -359,7 +455,7 @@ class MFF {
                 for (const m in that.config.metric) {
                     if (that.config.metric.hasOwnProperty(m)) {
                         const mdata = that.config.metric[m];
-                        that.pool.create(m, mdata.interval, mdata.run, mdata.notice, mdata.warning, mdata.error);
+                        that.pool.create(that.config.server.logs, m, mdata.interval, mdata.run, mdata.notice, mdata.warning, mdata.error, mdata.history, mdata.call);
                     }
                 }
             } catch (error) {
@@ -425,6 +521,7 @@ class MFF {
     shutdown() {
         var that = this;
         console.log('MFF stoping');
+        that.pool.stopALL();
         that.http.close(() => {
             console.log('MFF shutdown');
             process.exit(0);
