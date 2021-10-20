@@ -1,8 +1,8 @@
 # Metric From Future
 
-[![CodeQL](https://github.com/AlexMcArrow/MetricFromFuture/actions/workflows/codeql-analysis.yml/badge.svg?branch=master)](https://github.com/AlexMcArrow/MetricFromFuture/actions/workflows/codeql-analysis.yml)
+[![CodeQL](https://github.com/AlexMcArrow/MetricFromFuture/actions/workflows/codeql-analysis.yml/badge.svg?branch=master)](https://github.com/AlexMcArrow/MetricFromFuture/actions/workflows/codeql-analysis.yml) [![njsscan sarif](https://github.com/AlexMcArrow/MetricFromFuture/actions/workflows/njsscan-analysis.yml/badge.svg?branch=master)](https://github.com/AlexMcArrow/MetricFromFuture/actions/workflows/njsscan-analysis.yml)
 
-`v0.2.18`
+ `v0.2.18`
 
 Metric Server for calculation timing of script execution time
 
@@ -22,11 +22,11 @@ Each Runner starts with time = `-1` to handle fast execution correctly. Then its
 
 Runner's working hours are not limited.
 
-The collector with a frequency of `1` (one) second removes the current running time of the Runner (s). The highest value is more significant. This value is considered a `LIVE` -value.
+The collector with a frequency of `1` (one) second removes the current running time of the Runner (s). The highest value is more significant. This value is considered a `LIVE` value.
 
-When the Runner finishes working, he outputs to `STDOUT` the value that determines the time that the script has measured and considers it necessary to consider `SAVE` -value.
+When the Runner finishes working, he outputs to `STDOUT` the value that determines the time that the script has measured and considers it necessary to consider `SAVE` value.
 
-The `SAVE` -value is considered correct as long as it is less than any `LIVE` -value of the Runners of this Metric.
+The `SAVE` value is considered correct as long as it is less than any `LIVE` value of the Runners of this Metric.
 
 ---
 
@@ -235,6 +235,6 @@ This log file contains records of not `OK` work ( `notice` , `warning` , `error`
 
 The MIT License (MIT).
 
-Please see [ `LICENSE` ](./LICENSE) for more information.
+Please see [LICENSE](./LICENSE) for more information.
 
 Maintained by [Alex McArrow](https://github.com/AlexMcArrow)
