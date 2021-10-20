@@ -1,6 +1,8 @@
 # Metric From Future
 
- `v0.2.18`
+[![CodeQL](https://github.com/AlexMcArrow/MetricFromFuture/actions/workflows/codeql-analysis.yml/badge.svg?branch=master)](https://github.com/AlexMcArrow/MetricFromFuture/actions/workflows/codeql-analysis.yml)
+
+`v0.2.18`
 
 Metric Server for calculation timing of script execution time
 
