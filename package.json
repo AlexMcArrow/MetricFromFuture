@@ -1,18 +1,17 @@
 {
     "name": "@alexmcarrow/metricfromfuture",
-    "version": "0.2.18",
+    "version": "0.3.0",
     "description": "Metric Server with realtime calculation",
-    "main": "./server.js",
+    "main": "./index.js",
     "scripts": {
-        "test": "node server.js",
-        "start": "node ./dist/mff.js",
+        "dev": "node index.js",
         "build": "webpack --config webpack.config.js"
     },
     "keywords": [
         "metric",
         "server",
         "realtime",
-        "rpc"
+        "json-rpc"
     ],
     "repository": {
         "type": "git",

@@ -1,17 +1,72 @@
 {
     "server": {
-        "port": 20744,
-        "logs": false
+        "port": 20744
     },
     "metric": {
-        "check": {
-            "interval": 15,
-            "run": "/usr/bin/sh /home/user/check.sh",
-            "notice": 20,
-            "warning": 35,
-            "error": 45,
-            "history": 10,
-            "call": "/usr/bin/sh /home/user/send.sh --metric=$1 --level=$2 --time=$3"
+        "test": {
+            "active": true,
+            "metric": {
+                "interval": 1000,
+                "driver": "dns",
+                "path": {
+                    "rec": "google.com",
+                    "type": "A",
+                    "dns": "8.8.8.8"
+                }
+            },
+            "agr": {
+                "lvl": {
+                    "active": true,
+                    "notice": 60,
+                    "warning": 75,
+                    "error": 100
+                },
+                "history": {
+                    "active": true,
+                    "max": 10
+                },
+                "avg": {
+                    "active": true,
+                    "zones": {
+                        "10": {
+                            "active": true,
+                            "interval": 10000,
+                            "src": "@live"
+                        },
+                        "30": {
+                            "active": true,
+                            "interval": 30000,
+                            "src": "@zones.10"
+                        },
+                        "60": {
+                            "active": true,
+                            "interval": 60000,
+                            "src": "@zones.10"
+                        }
+                    }
+                }
+            },
+            "call": {
+                "caller": "shell",
+                "path": "echo $1 $2 $3 >> call.log"
+            },
+            "log": {
+                "logger": "local"
+            }
+        }
+    },
+    "caller": {
+        "shell": {
+            "active": true,
+            "driver": "shell",
+            "path": "echo $1 $2 $3 >> $1.call.log"
+        }
+    },
+    "logger": {
+        "local": {
+            "active": true,
+            "driver": "file",
+            "path": "./logs/$1.log"
         }
     }
 }
