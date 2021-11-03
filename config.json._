@@ -1,6 +1,25 @@
 {
-    "server": {
-        "port": 20744
+    "rpc": {
+        "front": {
+            "active": true,
+            "driver": "json",
+            "dsn": {
+                "type": "front",
+                "host": "127.0.0.1",
+                "port": 20744,
+                "path": "/"
+            }
+        },
+        "back": {
+            "active": true,
+            "driver": "json",
+            "dsn": {
+                "type": "back",
+                "host": "127.0.0.1",
+                "port": 20799,
+                "path": "/"
+            }
+        }
     },
     "metric": {
         "test": {
@@ -12,38 +31,6 @@
                     "rec": "google.com",
                     "type": "A",
                     "dns": "8.8.8.8"
-                }
-            },
-            "agr": {
-                "lvl": {
-                    "active": true,
-                    "notice": 60,
-                    "warning": 75,
-                    "error": 100
-                },
-                "history": {
-                    "active": true,
-                    "max": 10
-                },
-                "avg": {
-                    "active": true,
-                    "zones": {
-                        "10": {
-                            "active": true,
-                            "interval": 10000,
-                            "src": "@live"
-                        },
-                        "30": {
-                            "active": true,
-                            "interval": 30000,
-                            "src": "@zones.10"
-                        },
-                        "60": {
-                            "active": true,
-                            "interval": 60000,
-                            "src": "@zones.10"
-                        }
-                    }
                 }
             },
             "call": {

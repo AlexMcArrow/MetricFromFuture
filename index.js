@@ -10,4 +10,6 @@
 const server = require('./src/server')
 
 var MFF = new server()
-MFF.start()
+MFF.start(process.env.PATH_CONFIG || './config.json')
+
+/** End of index */

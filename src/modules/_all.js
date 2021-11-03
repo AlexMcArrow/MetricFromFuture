@@ -1,3 +1,4 @@
 module.exports = {
-    caller: require('./caller')
+    rpc: require('./rpc'),
+    caller: require('./caller'),
 }
