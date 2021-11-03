@@ -8,7 +8,8 @@ module.exports = {
     target: 'node',
     mode: 'production',
     entry: {
-        mff: './index.js'
+        mff: './index.js',
+        cli: './cli/index.js'
     },
     resolve: {
         extensions: [".ts", ".js"]
