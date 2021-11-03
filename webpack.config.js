@@ -8,11 +8,8 @@ module.exports = {
     target: 'node',
     mode: 'production',
     entry: {
-        mff: './server.js',
-        ...glob.sync('./ext/**.js').reduce(function(obj, el) {
-            obj['ext/' + path.parse(el).name] = el;
-            return obj
-        }, {})
+        mff: './index.js',
+        cli: './cli/index.js'
     },
     resolve: {
         extensions: [".ts", ".js"]
