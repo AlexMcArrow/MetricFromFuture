@@ -2,7 +2,6 @@
  * MFF HTTP-JSON-RPC CLI-client for administrative operation
  */
 
-const { match } = require('assert');
 var http = require('http')
 
 var JSONRPCClient = function(port, host, path = null) {
